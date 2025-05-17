@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- omit in toc -->
-# OfficeMCP v1 🚀
+# OfficeMCP v1.0.5
 <strong>>The most seeable and free way to control Microsof applications by AI model.</strong>
 
 [![PyPI - Version](https://img.shields.io/pypi/v/fastmcp.svg)](https://pypi.org/project/fastmcp)
