@@ -1,3 +1,9 @@
+<div align="centre">
+    # OfficeMCP v2 
+<strong>The most seeable and free way to control Microsof applications by AI model.</strong>
+[![PyPI - Version](https://img.shields.io/pypi/v/fastmcp.svg)](https://pypi.org/project/fastmcp)
+    
+</div>
 # OfficeMCP
 
 OfficeMCP server is designed for AI to automate Microsoft Office Applications (Word, Excel, PowerPoint, Access, OneNote, Visio, Project, WPS.word, Wps.powerpoint, wps.excel etc.) by COM interface in Windows OS. Not working on Linux/MacOS.
