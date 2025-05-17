@@ -48,10 +48,11 @@ There are two ways or two modes to install OfficeMCP (They also can be used in t
 >uvx officemcp sse
 
 the Mcp server url will be:  "http://127.0.0.1:8888/sse"  or  "http://127.0.0.1:8888/sse" 
+the default work folder is D:\@officemcp
 
 
 ##### or something like below
->uvx officemcp sse --port 7777 --host 127.0.0.8
+>uvx officemcp sse --port 7777 --host 127.0.0.8 --folder D:\myfolder
 
 "url" will be : "http://127.0.0.8:7777/sse"
 #### step 2: 
