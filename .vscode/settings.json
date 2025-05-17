@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "D:\\Programs\\Anaconda3\\Lib\\site-packages",
+        "./src/officemcp"
+    ]
+}

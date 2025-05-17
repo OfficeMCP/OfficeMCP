@@ -1,0 +1,6 @@
+.Navigator/
+.venv/
+disk/
+my/
+sources/
+src/officemcp/__pycache__/

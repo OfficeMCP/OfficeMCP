@@ -1,0 +1,20 @@
+[project]
+name = "officemcp"
+version = "1.0.5"
+description = "this is an mcp server for you to control office application installed in windows"
+readme = "README.md"
+authors = [
+    { name = "OfficeMCP", email = "youngfe@live.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.3.3",
+    "pywin32>=310",
+]
+
+[project.scripts]
+officemcp = "officemcp:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
