@@ -4,7 +4,7 @@ OfficeMCP server is designed for AI to automate Microsoft Office Applications (W
 
 # Warns
 
-you should this mcp carefully, as it not limit the usage of python. epeciall there's a tool RunPython(...) to execute Ai model's thought, but it is also the wonderfull parts of OfficeMCP. we can't guarantee that your AI model will not do something bad to your computer. we don't take any responsibility.
+Please keep it in mind, as OfficeMCP not limit the usage of python. epeciall there's a tool RunPython(...) to execute python codes created by Ai model. But it is also the most wonderfull parts of OfficeMCP. we can't guarantee that your AI model will not do something bad to your computer. we don't take any responsibility.
 
 # System Requirements
 
