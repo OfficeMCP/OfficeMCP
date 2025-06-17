@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/officemcp-officemcp-badge.png)](https://mseep.ai/app/officemcp-officemcp)
+
 <div align="center">
 
 <!-- omit in toc -->
