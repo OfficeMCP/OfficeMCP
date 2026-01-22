@@ -5,6 +5,12 @@ import os,sys
 import win32com.client
 from pathlib import Path
 from fastmcp.resources import FileResource, TextResource, DirectoryResource
+
+
+def _log(*args, **kwargs):
+    print(*args, file=sys.stderr, flush=True, **kwargs)
+
+
 class TheOfficer:
     def __init__(self):
         self._excel = None
@@ -65,12 +71,13 @@ class TheOfficer:
             self.Speaker.Speak(text)
             return True
         except Exception as e:
-            print(e)
+            _log(e)
             return False
     
     def Beep(self,frequency:int=500,duration:int=500):
         import winsound
-        winsound.Beep(frequency, duration) 
+        winsound.Beep(frequency, duration)
+        return True
 
     def DownloadImage(self, url: str, save_path: str = None) -> str:
         """Download an image from the given URL and save it to the specified path under the OfficeMCP root folder."""
@@ -93,15 +100,15 @@ class TheOfficer:
                 out_file.write(response.read())
             return file_path
         except Exception as e:
-            print(f'Download failed: {e}')
+            _log(f'Download failed: {e}')
             return ""
         
     def Print(self, obj):
         if self._printable:
             try:              
-                print(obj)
+                _log(obj)
             except Exception as e:
-                print(e)
+                _log(e)
 
     def Visible(self, app_name: str, visible = None) -> bool:
         """Check if the specified application is visible."""
@@ -114,7 +121,7 @@ class TheOfficer:
                     app.Visible = visible
                 return app.Visible
         except Exception as e:
-            print(e)
+            _log(e)
             return False
 
     def Quit(self,app_name: str, force: bool = False)->bool:
@@ -125,7 +132,7 @@ class TheOfficer:
             try:
                 return self.QuitApplication(app, force)
             except Exception as e:
-                print(e)
+                _log(e)
         return False
 
     def QuitApplication(self,app,force: bool = False)->bool:
@@ -134,7 +141,7 @@ class TheOfficer:
                 app.Quit()
                 return True
             except Exception as e:
-                print(e)
+                _log(e)
                 return False
         import win32process
         import win32api
@@ -161,7 +168,7 @@ class TheOfficer:
             try:
                 return app
             except Exception as e:
-                print(e)
+                _log(e)
         if asNewInstance:
             app = win32com.client.Dispatch(com_full_name)
             self.__dict__[app_name_attr] = app
@@ -212,7 +219,7 @@ class TheOfficer:
             except (FileNotFoundError, pywintypes.com_error):
                 continue
             except Exception as e:
-                print(f"[DEBUG] Error verifying {prog_id}: {str(e)}")
+                _log(f"[DEBUG] Error verifying {prog_id}: {str(e)}")
         return apps
 
     def AvailableApps(self) -> list:        
@@ -226,7 +233,7 @@ class TheOfficer:
             except (FileNotFoundError, pywintypes.com_error):
                 continue
             except Exception as e:
-                print(f"[DEBUG] Error verifying {prog_id}: {str(e)}")            
+                _log(f"[DEBUG] Error verifying {prog_id}: {str(e)}")            
         return apps
     def IsAppAvailable(self,app_name: str) -> bool:
         """Check if the specified application is installed."""
@@ -237,7 +244,7 @@ class TheOfficer:
                 pass
             return True
         except Exception as e:
-            print("e")
+            _log(e)
             return False
 
     def Demonstrate(self)->str:
@@ -320,17 +327,24 @@ class TheOfficer:
         return file_path
 
     def IsFileExits(self, file_name: str) -> bool:
-        """Check if the specified file exists."""
+        """Check if the specified file exists under RootFolder (legacy name)."""
         file_path = self.FilePath(file_name)
         return os.path.exists(file_path)
+
+    def IsFileExists(self, sub_file_path: str) -> bool:
+        """Check if the specified file exists under RootFolder."""
+        return self.IsFileExits(sub_file_path)
     
     def ScreenShot(self, save_path: str = None) -> str:
-        """Capture a screenshot of the entire screen and save to the specified path."""
+        """Capture a screenshot of the entire virtual screen and save under RootFolder.
+
+        If Pillow is installed, saves PNG (or based on file extension via Pillow).
+        If Pillow is not installed, falls back to BMP via Win32 bitmap save.
+        """
         import win32gui
         import win32ui
         import win32con
         import win32api
-        from PIL import Image
         import datetime
         # 获取桌面窗口句柄
         hdesktop = win32gui.GetDesktopWindow()
@@ -345,24 +359,49 @@ class TheOfficer:
         screenshot.CreateCompatibleBitmap(img_dc, width, height)
         mem_dc.SelectObject(screenshot)
         mem_dc.BitBlt((0, 0), (width, height), img_dc, (left, top), win32con.SRCCOPY)
-        bmpinfo = screenshot.GetInfo()
-        bmpstr = screenshot.GetBitmapBits(True)
-        img = Image.frombuffer(
-            'RGB',
-            (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
-            bmpstr, 'raw', 'BGRX', 0, 1)
         if save_path is None:
             now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            save_path =self.FilePath(f"screenshot_{now}.png")
+            rel_path = f"screenshot_{now}.png"
         else:
-            save_path =self.FilePath(save_path)
-        img.save(save_path)
+            rel_path = save_path
+        abs_path = self.FilePath(rel_path)
+
+        saved = False
+        try:
+            from PIL import Image  # type: ignore
+
+            bmpinfo = screenshot.GetInfo()
+            bmpstr = screenshot.GetBitmapBits(True)
+            img = Image.frombuffer(
+                'RGB',
+                (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
+                bmpstr, 'raw', 'BGRX', 0, 1)
+            img.save(abs_path)
+            saved = True
+        except Exception:
+            # Fallback: save BMP without Pillow
+            root, ext = os.path.splitext(abs_path)
+            if ext.lower() != '.bmp':
+                abs_path = root + '.bmp'
+            try:
+                screenshot.SaveBitmapFile(mem_dc, abs_path)
+                saved = True
+            except Exception:
+                saved = False
+
+        if not saved:
+            # 释放资源
+            mem_dc.DeleteDC()
+            win32gui.DeleteObject(screenshot.GetHandle())
+            img_dc.DeleteDC()
+            win32gui.ReleaseDC(hdesktop, desktop_dc)
+            return ""
         # 释放资源
         mem_dc.DeleteDC()
         win32gui.DeleteObject(screenshot.GetHandle())
         img_dc.DeleteDC()
         win32gui.ReleaseDC(hdesktop, desktop_dc)
-        return save_path
+        return abs_path
 
  #region Properties
 

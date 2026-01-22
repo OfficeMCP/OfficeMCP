@@ -119,11 +119,13 @@ Tools:
 
 - Beep(...): play a beep sound.
 
-- DefaultFolder(...): return the OfficeMCP root work folder default is ("D:\OfficeMCP")
+- RootFolder(): return the OfficeMCP root work folder (default is "D:\\@OfficeMCP").
 
 - IsFileExists(sub_path): check if a file exists in the OfficeMCP root folder.
 
 - DownloadImage(...): download an image from a given URL and save it to the specified path.
+
+- ScreenShot(...): capture a screenshot of the entire screen and save it under the OfficeMCP root folder.
 
 - RunPython(codes,data): run python code in the OfficeMCP server context.
     - This is the most powerful tool in OfficeMCP server. AI can use this tool to do anything supported by the server, including automating Office applications.

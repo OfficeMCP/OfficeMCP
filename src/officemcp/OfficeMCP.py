@@ -4,6 +4,12 @@ import time
 from fastmcp import FastMCP
 from fastmcp.resources import FileResource, TextResource, DirectoryResource
 from officemcp.Officer import TheOfficer
+
+
+def _log(*args, **kwargs):
+    print(*args, file=sys.stderr, flush=True, **kwargs)
+
+
 mcp = FastMCP("OfficeMCP")
 mcp.isrunnning = False
 mcp.Officer = TheOfficer()
@@ -27,12 +33,12 @@ import inspect
 
 @mcp.tool()
 def AvailableApps() -> list:
-    """Get Microsoft Office applications availability. """
+    """Return a list of installed Office/WPS applications (by ProgID availability)."""
     return Officer.AvailableApps()
 
 @mcp.tool()
 def RunningApps() -> list:
-    """Get Microsoft Office applications availability. """
+    """Return a list of currently running Office/WPS applications (by active COM objects)."""
     return Officer.RunningApps()
 
 @mcp.tool()
@@ -43,25 +49,39 @@ def IsAppAvailable(app_name: str = "Word") -> bool:
 
 @mcp.tool()
 def DownloadImage(url: str='https://www.bing.com/favicon.ico', save_path: str='favicon.ico') -> str:
-    """ Download an image from the given URL and save it to the specified path."""
+    """Download an image URL and save it under the server RootFolder.
+
+    Args:
+        url: Image URL.
+        save_path: Relative path under RootFolder. If omitted, a timestamped name is used.
+
+    Returns:
+        Absolute file path of the saved file, or empty string on failure.
+    """
     Officer.Print(f'Tool.DownloadImage....{url}  to  {save_path}')
     path =  Officer.DownloadImage(url, save_path)
-    print('    path: {path}')
+    _log(f'    path: {path}')
+    return path
 
 @mcp.tool()
 def RootFolder() -> str:
-    """ return the default folder for this OfficeMCP server."""
+    """Return the server working root folder (created if missing)."""
     return Officer.RootFolder
 
 
 @mcp.tool()
 def Visible(app_name: str="Word", visible: bool = True) -> bool:
-    """ Check if the microsoft excel application is visible."""
+    """Get or set an Office application's Visible property.
+
+    Args:
+        app_name: Application name (e.g. Word/Excel/PowerPoint/Visio/Access/Outlook/Publisher/OneNote/Kwps/Ket/Kwpp).
+        visible: If provided, set visibility; otherwise returns current visibility.
+    """
     return Officer.Visible(app_name,visible)
 
 @mcp.tool()
 def Launch(app_name: str ="Word", visilbe: bool = True)->bool:
-    """ Launch an new microsoft excel application or use the existed one."""
+    """Launch (or attach to) an Office application and optionally set it visible."""
     Officer.Print('Tool.Launch....')
     try:
         app = Officer.Application(app_name)
@@ -74,7 +94,14 @@ def Launch(app_name: str ="Word", visilbe: bool = True)->bool:
 
 @mcp.tool()
 def ScreenShot(save_path: str = None) -> str:
-    """ Launch an new microsoft excel application or use the existed one."""
+    """Capture a screenshot of the entire virtual screen and save it under RootFolder.
+
+    Args:
+        save_path: Relative path under RootFolder. If omitted, a timestamped name is used.
+
+    Returns:
+        Absolute file path of the saved screenshot, or empty string on failure.
+    """
     Officer.Print('Tool.ScreenShot....')
     try:
         path  = Officer.ScreenShot(save_path)
@@ -104,6 +131,11 @@ def ReadME() -> TextResource:
 
 @mcp.tool()
 def IsFileExists(sub_file_path: str) -> bool:
+    """Check whether a file exists under RootFolder.
+
+    Args:
+        sub_file_path: Relative path under RootFolder.
+    """
     return Officer.IsFileExists(sub_file_path)
 
 @mcp.tool()
@@ -122,7 +154,7 @@ def RunPython(code: str = "\nprint(f'hello world from {data}')\noutput=data\n", 
             output = "Demo succesed"
             sheet.Cells(6, 1).Value = output     
     """
-    print('Tool.RunPython')
+    _log('Tool.RunPython')
     try:
         namespace = {
             'data': data,
@@ -138,31 +170,41 @@ def RunPython(code: str = "\nprint(f'hello world from {data}')\noutput=data\n", 
 
 @mcp.tool()
 def Quit(app_name: str="Word",force:bool=False)->bool:
-    """ Quit the microsoft excel application."""
-    print('Tool.Quit:')
+    """Quit the specified Office application.
+
+    Args:
+        app_name: Application name.
+        force: If True, force-terminate the process (may lose unsaved work).
+    """
+    _log('Tool.Quit:')
     return Officer.Quit(app_name,force)
 
 @mcp.tool()
 def Speak(text: str = "I'm office mcp server , how are you", volume: int = 80, rate: int = 0)->bool:
     """ Speak the text. volume range is 0-100, rate range is -10 to 10."""
-    print('Tool.Speak:')
+    _log('Tool.Speak:')
     return Officer.Speak(text, volume, rate)
 
 @mcp.tool()
 def Beep(frequency:int=500,duration:int=500)->bool:
     """ Beep the computer. frequency range is 37 to 32767, duration range is 0 to 65535."""
-    print('Tool.Beep:')
-    return Officer.Beep(frequency, frequency)
+    _log('Tool.Beep:')
+    try:
+        Officer.Beep(frequency, duration)
+        return True
+    except Exception as e:
+        _log(e)
+        return False
     
 @mcp.tool()
 def Demonstrate()->dict:
     """ Demonstrate for you to see some functions in this OfficeMCP server."""
-    print('Tool.Demonstrate:')
+    _log('Tool.Demonstrate:')
     try:
         output = Officer.Demonstrate()    
         return {"success": True, "output": output}
     except Exception as e:
-        print(e)
+        _log(e)
         return {"success": False, "error": str(e), "output": output}
 
 @mcp.resource("resource://Instructions")
@@ -246,7 +288,7 @@ def RunOfficeMCP() -> None:
         try:
             os.makedirs(theFolder)
         except Exception:
-            print(f"Warning: Could not create folder {theFolder}, fallback to D:\\@OfficeMCP")
+            _log(f"Warning: Could not create folder {theFolder}, fallback to D:\\@OfficeMCP")
             theFolder = "D:\\@OfficeMCP"
             if not os.path.exists(theFolder):
                 os.makedirs(theFolder)
@@ -254,13 +296,13 @@ def RunOfficeMCP() -> None:
 
     try:
         if transport == "stdio":
-            print(f"OfficeMCP running in stdio mode, root folder: {theFolder}")
-            mcp.run("stdio")
+            _log(f"OfficeMCP running in stdio mode, root folder: {theFolder}")
+            mcp.run("stdio", show_banner=False)
         else:
-            print(configure_template.format(host=theHost, port=thePort))
-            print(f"OfficeMCP running in SSE mode, host: {theHost}, port: {thePort}, root folder: {theFolder}")
-            mcp.run(transport="sse", host=theHost, port=thePort)
+            _log(configure_template.format(host=theHost, port=thePort))
+            _log(f"OfficeMCP running in SSE mode, host: {theHost}, port: {thePort}, root folder: {theFolder}")
+            mcp.run(transport="sse", host=theHost, port=thePort, show_banner=False)
     except ValueError as e:
-        print(f"OfficeMCP Error parsing arguments: {e}")
+        _log(f"OfficeMCP Error parsing arguments: {e}")
     except Exception as e:
-        print(f"OfficeMCP Server startup failed: {e}")
+        _log(f"OfficeMCP Server startup failed: {e}")
