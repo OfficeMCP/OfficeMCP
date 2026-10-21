@@ -4,7 +4,7 @@
 # OfficeMCP v1.0.5
 <strong>>The most seeable and free way to control Microsof applications by AI model.</strong>
 
-[![PyPI - Version](https://img.shields.io/pypi/v/fastmcp.svg)](https://pypi.org/project/fastmcp)
+[![PyPI - Version](https://img.shields.io/pypi/v/officemcp.svg)](https://pypi.org/project/officemcp)
 
 </div>
 
@@ -53,6 +53,7 @@ There are two ways or two modes to install OfficeMCP (They also can be used in t
 - One OfficeMCP server for multi mcp client mode
 - You can change port and host as you like
 - This is recommended way to use OfficeMCP server.
+- The sse server is a separate process. Nothing starts it for you, so it has to be running before a client connects, and it stops when the shell that runs it is closed. A client that reports a connection error on every start is usually pointing at this server while it is not running.
 #### step 1:  
 **Run one command in shell or power shell:**
 >uvx officemcp sse
@@ -90,6 +91,34 @@ the default work folder is D:\@officemcp
 }
 
 ```
+
+### 3. Use OfficeMCP with OpenCode
+
+OpenCode reads `~/.config/opencode/opencode.jsonc` and nests servers under `mcp.servers`:
+
+```json
+{
+    "$schema": "https://opencode.ai/config.json",
+    "mcp": {
+        "servers": {
+            "OfficeMCP": {
+                "type": "local",
+                "command": [
+                    "uvx",
+                    "officemcp"
+                ]
+            }
+        }
+    }
+}
+```
+
+Two things are worth knowing here:
+
+- OpenCode expects `mcp.servers`. A config that puts the server directly under `mcp` uses the older layout, which is deprecated but still loads.
+- A project can override a server by defining the same name in an `opencode.jsonc` in the project root. The project entry replaces the global one rather than merging with it, so it has to repeat the type and command.
+
+On Windows, `uv` and `uvx` install to `%USERPROFILE%\.local\bin`. That folder is on the user PATH, so `uvx` resolves by name, but you can also point the command at `C:\\Users\\<you>\\.local\\bin\\uvx.exe` if the client does not inherit your PATH.
 
 ## Usage
 On AI IDE, you can ask AI model to control Office Applications by OfficeMCP server:
@@ -138,5 +167,5 @@ Tools:
 
 ## Development
 ```bash
-git clone https://github.com/officemcp/officemcp
+git clone https://github.com/OfficeMCP/OfficeMCP
 ```
